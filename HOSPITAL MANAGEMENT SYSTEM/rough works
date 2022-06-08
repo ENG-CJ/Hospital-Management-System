@@ -1,0 +1,230 @@
+
+
+ def _fetch_(self):
+        conn = pyodbc.connect(
+            "Driver={SQL Server Native Client 11.0};"
+            "Server= DESKTOP-N9PT8FH\SQLEXPRESS;"
+            "Database=DaruShifa_Hospital;"
+            "Trusted_Connection=yes;"
+        )
+        cursor = conn.cursor()
+        cursor.execute('select *from departments')
+        rows = cursor.fetchall()
+        for row in rows:
+            self.tree_data.insert('', END, values=(
+                row[0], row[1]
+            ))
+
+    # selection
+
+    def selection(self,e):
+        item_selected=self.tree_data.focus()
+        selection_item=self.tree_data.item(item_selected,'values')
+        self.depID.delete(0,END)
+        self.depName.delete(0,END)
+        # insert
+        self.depID.insert(0,selection_item[0])
+        self.depName.insert(0,selection_item[1])
+
+    # add data
+     def clear_nurse(self):
+        self.nurid.delete(0,END)
+        self.nursname.delete(0,END)
+        self._age.delete(0,END)
+        self._mobile.delete(0,END)
+        self._address.delete(0,END)
+        self.salary_n.delete(0,END)
+        # self.specialist_n.delete(0,END)
+        self._email.delete(0,END)
+        self.shift_var_n.set('Select')
+        self.departs_n.set('Select')
+
+    # selection
+    def selection_nurse(self,e):
+        item_selected=self.tree_nurse.focus()
+        selection_item=self.tree_nurse.item(item_selected,'values')
+        self.clear_nurse()
+        # insert
+        self.nurid.insert(0,selection_item[0])
+        self.nursname.insert(0,selection_item[1])
+        self._age.insert(0,selection_item[2])
+        self.gender_var_n.set(str(selection_item[3]))
+        self._mobile.insert(0,selection_item[4])
+        self._email.insert(0,selection_item[5])
+        self._address.insert(0,selection_item[6])
+        self.salary_n.insert(0, selection_item[7])
+        self.shift_var_n.set(str(selection_item[8]))
+        self.departs_n.set(str(selection_item[9]))
+
+    # ___add____nurse
+    def add_nurse(self):
+        # hos = HOSPITAL_SYSTEM.DARUL_SHIFA_HOSPITAL()
+        if self.nurid.get()=='' or self.nursname.get()=='' or self._age.get()=='' or self._mobile.get()=='' or self._email.get()=='' or self.gender_var_n.get()=='Select Gender' or self._address.get()=='' or   self.salary_n.get()=='' or self.shift_var_n.get()=='Select' or self.dep_var_n.get()=='Select':
+            messagebox.showerror('DaruShifa_Hospital', 'All Fields Are required')
+        else:
+            try:
+                conn = pyodbc.connect(
+                    "Driver={SQL Server Native Client 11.0};"
+                    "Server= DESKTOP-N9PT8FH\SQLEXPRESS;"
+                    "Database=DaruShifa_Hospital;"
+                    "Trusted_Connection=yes;"
+                )
+                cursor = conn.cursor()
+                cursor.execute("INSERT INTO Nursing Values(?,?,?,?,?,?,?,?,?,?)",(
+                    self.nurid.get(),
+                    self.nursname.get(),
+                    self._age.get(),
+                    self.gender_var_n.get(),
+                    self._mobile.get(),
+                    self._email.get(),
+                    self._address.get(),
+                    self.salary_n.get(),
+                    self.shift_var_n.get(),
+                    self.departs_n.get()
+
+                ))
+                conn.commit()
+                messagebox.showinfo('DaruShifa Hospital', f'Successful Added\nNurse [{self.nursname.get()}]')
+                self.tree_nurse.delete(*self.tree_nurse.get_children())
+                self._fetch_nurses()
+                self.show_counts()
+            except pyodbc.Error as err:
+                sqlstate=err.args[1]
+                sqlstate=sqlstate.split('.')
+                # if sqlstate=='23000':
+                messagebox.showerror(f'Error Occurred', f'{sqlstate[2],sqlstate[3],sqlstate[4]}')
+
+
+
+    #__end____
+
+    #update
+    def _update_nurse(self):
+        if self.nurid.get() == '' or self.nursname.get() == '' or self._age.get() == '' or self._mobile.get() == '' or self._email.get() == '' or self.gender_var_n.get() == 'Select Gender' or self._address.get() == '' or self.salary_n.get() == '' or self.shift_var_n.get() == 'Select' or self.dep_var_n.get() == 'Select':
+            messagebox.showerror('ERR', 'Plz Select The Nurse\nYou Want To Update')
+        else:
+            try:
+                item = self.tree_nurse.focus()
+                selected = self.tree_nurse.item(item, 'values')
+                conn = pyodbc.connect(
+                    "Driver={SQL Server Native Client 11.0};"
+                    "Server= DESKTOP-N9PT8FH\SQLEXPRESS;"
+                    "Database=DaruShifa_Hospital;"
+                    "Trusted_Connection=yes;"
+                )
+                cursor = conn.cursor()
+                cursor.execute(f'UPDATE Nursing set NurseID=?,NurseName=?,Age=?,gender=?,Mobile=?, Email=?, Address=?,Salary=?,'
+                               f'ShiftID=?,DepartID=? where NurseID={selected[0]}',
+                               (
+                                   self.nurid.get(),
+                                   self.nursname.get(),
+                                   self._age.get(),
+                                   self.gender_var_n.get(),
+                                   self._mobile.get(),
+                                   self._email.get(),
+                                   self._address.get(),
+                                   self.salary_n.get(),
+                                   self.shift_var_n.get(),
+                                   self.departs_n.get()
+                               ))
+                conn.commit()
+                messagebox.showinfo('DaruShifa Hospital', 'Nurse Updated Successfully')
+                self.clear_nurse()
+                self.tree_nurse.delete(*self.tree_nurse.get_children())
+                self._fetch_nurses()
+            except pyodbc.Error as err:
+                sqlstate = err.args[1]
+                sqlstate = sqlstate.split('.')
+                # if sqlstate=='23000':
+                messagebox.showerror(f'Error Occurred', f'{sqlstate[2], sqlstate[3]}')
+
+    #end update
+
+    # delete
+    def _deletion_nurse(self):
+        if self.nurid.get() == '' or self.nursname.get() == '' or self._age.get() == '' or self._mobile.get() == '' or self._email.get() == '' or self.gender_var_n.get() == 'Select Gender' or self._address.get() == '' or self.salary_n.get() == '' or self.shift_var_n.get() == 'Select' or self.dep_var_n.get() == 'Select':
+            messagebox.showerror('ERR', 'Plz Select The Nurse\nYou Want To Delete')
+        else:
+            try:
+                item = self.tree_nurse.focus()
+                selected = self.tree_nurse.item(item, 'values')
+                conn = pyodbc.connect(
+                    "Driver={SQL Server Native Client 11.0};"
+                    "Server= DESKTOP-N9PT8FH\SQLEXPRESS;"
+                    "Database=DaruShifa_Hospital;"
+                    "Trusted_Connection=yes;"
+                )
+                cursor = conn.cursor()
+                ans = messagebox.askyesno('Confirm', f'Are You Sure To Delete \nThe Nurse {self.nursname.get()}')
+                if ans:
+                    cursor.execute(f'DELETE Nursing where NurseID={selected[0]}')
+                    conn.commit()
+                    messagebox.showinfo('DaruShifa Hospital', 'Nurse Was Deleted Successfully')
+                    self.clear_nurse()
+                    self.tree_nurse.delete(*self.tree_nurse.get_children())
+                    self._fetch_nurses()
+                    self.show_counts()
+                else:
+                    pass
+            except pyodbc.Error as err:
+                sqlstate = err.args[1]
+                sqlstate = sqlstate.split('.')
+                # if sqlstate=='23000':
+                messagebox.showerror(f'Error Occurred', f'{sqlstate[0], sqlstate[1]}')
+
+    #end delete
+
+            try:
+            search=self.search_.get()
+            conn = pyodbc.connect(
+                "Driver={SQL Server Native Client 11.0};"
+                "Server= DESKTOP-N9PT8FH\SQLEXPRESS;"
+                "Database=DaruShifa_Hospital;"
+                "Trusted_Connection=yes;"
+            )
+            cursor = conn.cursor()
+            cursor.execute(f'select *from Nursing where NurseID=?',(search))
+            row=cursor.fetchone()
+            if row!=None:
+                for x in self.tree_nurse.get_children():
+                    self.tree_nurse.delete(x)
+                self.tree_nurse.insert('',END,values=(
+                    row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9]
+                ))
+            else:
+                messagebox.showerror('DaruShifa Hospital','No Record Was Found With that ID')
+
+        except pyodbc.Error as err:
+            sqlstate = err.args[1]
+            sqlstate = sqlstate.split('.')
+            # if sqlstate=='23000':
+            messagebox.showerror(f'Error Occurred Code | {err.args[0]}', f'{sqlstate[1], sqlstate[2]}')
+
+
+
+
+    def fetch_shifts(self):
+        conn = pyodbc.connect(
+            "Driver={SQL Server Native Client 11.0};"
+            "Server= DESKTOP-N9PT8FH\SQLEXPRESS;"
+            "Database=DaruShifa_Hospital;"
+            "Trusted_Connection=yes;"
+        )
+        cursor=conn.cursor()
+        cursor.execute('select *from Shifts')
+        rows=cursor.fetchall()
+        for row in rows:
+            self.shift.append(row[0])
+
+    def fetch_departs(self):
+        conn = pyodbc.connect(
+            "Driver={SQL Server Native Client 11.0};"
+            "Server= DESKTOP-N9PT8FH\SQLEXPRESS;"
+            "Database=DaruShifa_Hospital;"
+            "Trusted_Connection=yes;"
+        )
+        cursor = conn.cursor()
+        cursor.execute('select *from Departments')
+        rows = cursor.fetchall()
+        for row in rows:
+            self.depList.append(row[0])
